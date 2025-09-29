@@ -1,0 +1,18 @@
+{
+  "prettier.enable": false,
+  "editor.formatOnSave": false,
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false,
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features",
+    "editor.formatOnSave": false
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false
+  },
+  "[json]": {
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false
+  }
+}

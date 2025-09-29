@@ -12,26 +12,62 @@ type UsersProfile {
   bio String
 }
 
-model categories {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  v    Int    @map("__v")
-  name String
+type AuthorAvatar {
+  src String
 }
 
+type PostAuthor {
+  name   String
+  avatar AuthorAvatar
+}
+
+
 model posts {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  v          Int      @map("__v")
-  author     String   @db.ObjectId
-  categories String[] @db.ObjectId
-  content    String
-  published  Boolean
-  title      String
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  v           Int?       @map("__v")
+  
+  // Author information (embedded object)
+  author      PostAuthor
+  
+  // Article details
+  title       String
+  slug        String     @unique  // URL-friendly version of title
+  link        String     @unique
+  pubDate     String     // Stored as string, can be DateTime if needed
+  description String
+  image       String?    // Optional image URL
+  content     String
+  
+  // Metadata
+  categories  String[]   @db.ObjectId  // References to categories collection
+  published   Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  // SEO and source tracking
+  source      String?    // e.g., "tuoitre.vn"
+  tags        String[]   @default([])
+}
+
+model categories {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  v           Int?     @map("__v") @default(0)
+  name        String   @unique
+  slug        String?  @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  link        String?
 }
 
 model users {
-  id      String        @id @default(auto()) @map("_id") @db.ObjectId
-  v       Int           @map("__v")
-  email   String        @unique(map: "email_1")
-  name    String
-  profile UsersProfile?
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  v         Int?          @map("__v")
+  email     String        @unique(map: "email_1")
+  name      String
+  profile   UsersProfile?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
 }
+

@@ -3,6 +3,18 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": true
+  },
+  "projects": {
+    "rss-crawler": {
+      "type": "library",
+      "root": "libs/rss-crawler",
+      "entryFile": "index",
+      "sourceRoot": "libs/rss-crawler/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/rss-crawler/tsconfig.lib.json"
+      }
+    }
   }
 }
