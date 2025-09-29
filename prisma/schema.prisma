@@ -31,6 +31,7 @@ model posts {
   
   // Article details
   title       String
+  titleNormalized String?
   slug        String     @unique  // URL-friendly version of title
   link        String     @unique
   pubDate     String     // Stored as string, can be DateTime if needed

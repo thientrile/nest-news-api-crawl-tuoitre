@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Article, RssCrawlerService } from '../../libs/rss-crawler/src';
 import { CategoryService } from 'src/category/category.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { normalizeVietnamese } from 'src/utils/text.helper';
 
 @Injectable()
 export class PostService {
@@ -43,6 +44,7 @@ export class PostService {
             where: { link: post.link },
             update: {
               title: post.title,
+              titleNormalized: normalizeVietnamese(post.title),
               description: post.description || '',
               content: post.content,
               image: post.image,
@@ -51,6 +53,7 @@ export class PostService {
             },
             create: {
               title: post.title,
+              titleNormalized: normalizeVietnamese(post.title),
               link: post.link,
               slug: post.slug ?? this.rssCrawlerService.createSlug(post.title),
               pubDate: post.pubDate,
@@ -165,13 +168,15 @@ export class PostService {
 
       const skip = (page - 1) * limit;
 
+      const normalized = normalizeVietnamese(searchQuery);
+
       // Search for posts with title containing the search query (case insensitive)
       const posts = await this.prismaService.posts.findMany({
         where: {
           AND: [
             {
-              title: {
-                contains: searchQuery.trim(),
+              titleNormalized: {
+                contains: normalized,
                 mode: 'insensitive'
               }
             },
@@ -192,8 +197,8 @@ export class PostService {
         where: {
           AND: [
             {
-              title: {
-                contains: searchQuery.trim(),
+              titleNormalized: {
+                contains: normalized,
                 mode: 'insensitive'
               }
             },

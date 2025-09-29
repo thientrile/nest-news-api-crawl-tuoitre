@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { PostService } from './post.service';
+import { normalizeVietnamese } from '../utils/text.helper';
 
 @Controller('post')
 export class PostController {
@@ -31,7 +32,10 @@ export class PostController {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 10;
 
-    return this.postService.searchByTitle(searchQuery, pageNum, limitNum);
+    // Chuẩn hóa query
+    const normalizedQuery = normalizeVietnamese(searchQuery);
+
+    return this.postService.searchByTitle(normalizedQuery, pageNum, limitNum);
   }
 
   @Get('category/:slug')
@@ -42,6 +46,8 @@ export class PostController {
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 100;
-    return this.postService.findByCategorySlug(categorySlug, pageNum, limitNum);
+    // Normalize slug (phòng khi slug có dấu/space)
+    const normalizedSlug = normalizeVietnamese(categorySlug);
+    return this.postService.findByCategorySlug(normalizedSlug, pageNum, limitNum);
   }
 }
