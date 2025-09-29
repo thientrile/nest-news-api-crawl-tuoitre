@@ -1,349 +1,475 @@
+# 📰 NewsX Backend API
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+  <strong>A modern news aggregation and management system built with NestJS</strong>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<p align="center">
+  <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white" alt="Prisma" />
+</p>
 
-NewsX Backend API - A NestJS application with MongoDB and Prisma ORM for news management system.
+## 📋 Description
 
-## Tech Stack
-- **Framework**: NestJS (Node.js)
-- **Database**: MongoDB Atlas
-- **ORM**: Prisma
-- **Language**: TypeScript
+NewsX Backend API is a comprehensive news management system that crawls RSS feeds from Vietnamese news sources (primarily Tuoi Tre), processes content, and provides RESTful APIs for news consumption. Built with modern technologies for scalability and performance.
 
-## Project setup
+## ✨ Features
+
+- 🕷️ **RSS Feed Crawling**: Automated news crawling from multiple RSS sources
+- 📰 **Content Processing**: Intelligent content extraction and processing
+- 🏷️ **Category Management**: Organize news by categories with slug-based routing
+- 📄 **Pagination Support**: Efficient data pagination for large datasets  
+- 🔍 **Advanced Filtering**: Filter posts by category, publication status, and more
+- 🚀 **Modern Stack**: Built with NestJS, MongoDB, and Prisma ORM
+- 📝 **TypeScript**: Full TypeScript support for better developer experience
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **NestJS** | Backend Framework | Latest |
+| **TypeScript** | Programming Language | Latest |
+| **MongoDB** | Database | Latest |
+| **Prisma** | ORM & Database Toolkit | Latest |
+| **RSS Parser** | Feed Processing | Custom |
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js (v18 or higher)
+- MongoDB Atlas account or local MongoDB
+- npm or yarn package manager
+
+### Installation
 
 ```bash
-$ npm install
+# Clone the repository
+git clone <repository-url>
+cd newsx-be-api
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
 ```
 
-## Database Setup with Prisma
-
-### 1. Environment Configuration
+### Environment Configuration
 Create a `.env` file in the root directory:
 ```env
 DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/newsx-db"
+JWT_SECRET="your-super-secret-jwt-key-here"
+JWT_EXPIRES_IN="7d"
+NODE_ENV="development"
+PORT=3000
 ```
 
-### 2. Prisma Commands
+### Database Setup
 
-#### Generate Prisma Client
 ```bash
-$ npx prisma generate
+# Generate Prisma client
+npx prisma generate
+
+# Push schema to database (development)
+npx prisma db push
+
+# Open Prisma Studio (optional)
+npx prisma studio
 ```
 
-#### Push Schema to Database (Development)
+### Running the Application
+
 ```bash
-# Push schema changes to database without migration files
-$ npx prisma db push
+# Development mode (with hot reload)
+npm run start:dev
+
+# Production mode
+npm run start:prod
+
+# Watch mode
+npm run start
 ```
 
-#### Pull Schema from Database
-```bash
-# Pull schema from existing database (use --force to override local schema)
-$ npx prisma db pull
-$ npx prisma db pull --force
+The API will be available at: `http://localhost:3000`
+
+## 📚 API Endpoints
+
+### 🏠 Health Check
+Check if the API is running properly.
+
+```http
+GET /
 ```
 
-#### Open Prisma Studio (Database GUI)
-```bash
-# Open web interface to view and edit data
-$ npx prisma studio
+**Response:**
+```json
+"NewsX Backend API is running!"
 ```
 
-#### Reset Database (Development only!)
-```bash
-# WARNING: This will delete all data!
-$ npx prisma migrate reset --force
+### 📂 Categories
+
+#### Get All Categories
+Retrieve all news categories.
+
+```http
+GET /category
 ```
 
-### 3. Database Models
-
-Current schema includes:
-- **Users**: User accounts with profiles
-- **Categories**: News categories
-- **Posts**: News articles with author and category relationships
-
-#### Sample Data Structure:
-```typescript
-// User
-{
-  id: ObjectId,
-  email: "user@example.com",
-  name: "John Doe",
-  profile: {
-    bio: "User biography"
+**Response:**
+```json
+[
+  {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "Tin tức",
+    "slug": "tin-tuc",
+    "description": "Tin tức tổng hợp",
+    "link": "https://tuoitre.vn/rss/tin-moi-nhat.rss",
+    "createdAt": "2024-01-01T12:00:00Z",
+    "updatedAt": "2024-01-01T12:00:00Z"
   }
-}
+]
+```
 
-// Category
+#### Create Category
+Create a new news category with RSS feed URL.
+
+```http
+POST /category
+Content-Type: application/json
+
 {
-  id: ObjectId,
-  name: "Technology"
+  "name": "Công nghệ",
+  "slug": "cong-nghe",
+  "link": "https://tuoitre.vn/rss/cong-nghe.rss",
+  "description": "Tin tức công nghệ"
 }
+```
 
-// Post
+**Response:**
+```json
 {
-  id: ObjectId,
-  title: "News Title",
-  content: "Article content...",
-  published: true,
-  author: ObjectId, // Reference to User
-  categories: [ObjectId] // Array of Category references
+  "id": "507f1f77bcf86cd799439012",
+  "name": "Công nghệ",
+  "slug": "cong-nghe",
+  "description": "Tin tức công nghệ",
+  "link": "https://tuoitre.vn/rss/cong-nghe.rss",
+  "createdAt": "2024-01-01T12:00:00Z",
+  "updatedAt": "2024-01-01T12:00:00Z"
 }
 ```
 
-### 4. Useful Prisma Commands
+### 📰 Posts
 
-```bash
-# Check Prisma version
-$ npx prisma --version
+#### Crawl RSS Feeds
+Crawl all RSS feeds from categories and create/update posts.
 
-# Validate schema file
-$ npx prisma validate
-
-# Format schema file
-$ npx prisma format
-
-# Show database status
-$ npx prisma migrate status
-
-# Generate migration (for SQL databases, not used with MongoDB)
-$ npx prisma migrate dev --name migration_name
+```http
+GET /post/crawl
 ```
 
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Development Workflow
-
-### 1. Start the application
-```bash
-# development
-$ npm run start
-
-# watch mode (recommended for development)
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-### 2. Working with Prisma in Development
-```bash
-# After changing schema.prisma
-$ npx prisma db push
-$ npx prisma generate
-
-# View data in Prisma Studio
-$ npx prisma studio
-```
-
-### 3. MongoDB & Prisma Best Practices
-
-#### Schema Changes Workflow:
-1. Modify `prisma/schema.prisma`
-2. Run `npx prisma db push` to apply changes
-3. Run `npx prisma generate` to update Prisma Client
-4. Restart your NestJS application
-
-#### Important Notes:
-- **MongoDB doesn't support migrations**: Use `db push` instead of `migrate dev`
-- **Relations**: Use `@db.ObjectId` for referencing other collections
-- **Embedded documents**: Use `type` for nested objects (like `UsersProfile`)
-
-### 4. Troubleshooting
-
-#### Common Issues:
-
-**Connection String Error (P1013)**
-```
-Error: The provided database string is invalid
-```
-Solution: Ensure database name is included in connection string
-```env
-# Wrong
-DATABASE_URL="mongodb+srv://user:pass@cluster.mongodb.net"
-
-# Correct  
-DATABASE_URL="mongodb+srv://user:pass@cluster.mongodb.net/database_name"
-```
-
-**Empty Database Error (P4001)**
-```
-Error: The introspected database was empty
-```
-Solution: Use `db push` instead of `db pull` for new databases
-```bash
-$ npx prisma db push
-```
-
-**Re-introspection Error**
-```
-Error: Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB
-```
-Solution: Use `--force` flag or stick with `db push`
-```bash
-$ npx prisma db pull --force
-```
-
-## Using Prisma Client in NestJS
-
-### 1. Basic Service Example
-```typescript
-import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-
-@Injectable()
-export class UserService {
-  private prisma = new PrismaClient();
-
-  async findAll() {
-    return this.prisma.users.findMany({
-      include: {
-        profile: true
+**Response:**
+```json
+[
+  {
+    "id": "507f1f77bcf86cd799439013",
+    "title": "Breaking news title",
+    "slug": "breaking-news-title",
+    "content": "Full article content...",
+    "description": "Article description",
+    "image": "https://example.com/image.jpg",
+    "author": {
+      "name": "Author Name",
+      "avatar": {
+        "src": "https://example.com/avatar.jpg"
       }
-    });
+    },
+    "categories": ["507f1f77bcf86cd799439011"],
+    "published": true,
+    "source": "tuoitre.vn",
+    "pubDate": "2024-01-01T12:00:00Z"
   }
-
-  async create(data: { email: string; name: string }) {
-    return this.prisma.users.create({
-      data
-    });
-  }
-
-  async findById(id: string) {
-    return this.prisma.users.findUnique({
-      where: { id }
-    });
-  }
-}
+]
 ```
 
-### 2. Prisma Service (Recommended Pattern)
-```typescript
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+#### Get All Posts
+Retrieve all published posts with pagination.
 
-@Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit {
-  async onModuleInit() {
-    await this.$connect();
-  }
-}
+```http
+GET /post
 ```
 
-### 3. Example Queries
-
-```typescript
-// Find posts with categories and author
-const posts = await prisma.posts.findMany({
-  include: {
-    // Note: Relations need to be manually resolved in MongoDB
+**Response:**
+```json
+[
+  {
+    "id": "507f1f77bcf86cd799439013",
+    "title": "Sample News Title",
+    "slug": "sample-news-title",
+    "link": "https://tuoitre.vn/article-link",
+    "author": {
+      "name": "Author Name",
+      "avatar": { "src": "avatar-url" }
+    },
+    "content": "Full article content",
+    "description": "Brief description",
+    "image": "image-url",
+    "categories": ["category-id"],
+    "published": true,
+    "source": "tuoitre.vn",
+    "pubDate": "2024-01-01T12:00:00Z",
+    "createdAt": "2024-01-01T12:00:00Z",
+    "updatedAt": "2024-01-01T12:00:00Z"
   }
-});
+]
+```
 
-// Create post with categories
-const post = await prisma.posts.create({
-  data: {
-    title: "New Article",
-    content: "Content here...",
-    published: true,
-    author: userId,
-    categories: [categoryId1, categoryId2]
-  }
-});
+#### Get Posts by Category
+Retrieve posts filtered by category slug with pagination support.
 
-// Search posts by title
-const posts = await prisma.posts.findMany({
-  where: {
-    title: {
-      contains: "search term",
-      mode: 'insensitive'
+```http
+GET /post/category/{categorySlug}?page=1&limit=10
+```
+
+**Parameters:**
+- `categorySlug` (path): Category slug (e.g., "tin-tuc", "cong-nghe")
+- `page` (query): Page number (default: 1)
+- `limit` (query): Number of posts per page (default: 10, max: 100)
+
+**Example:**
+```http
+GET /post/category/tin-tuc?page=1&limit=5
+```
+
+**Response:**
+```json
+{
+  "posts": [
+    {
+      "id": "507f1f77bcf86cd799439013",
+      "title": "Sample News Title",
+      "slug": "sample-news-title",
+      "content": "Full article content",
+      "description": "Brief description",
+      "author": {
+        "name": "Author Name",
+        "avatar": { "src": "avatar-url" }
+      },
+      "categories": ["507f1f77bcf86cd799439011"],
+      "published": true,
+      "pubDate": "2024-01-01T12:00:00Z"
     }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 10,
+    "totalPosts": 50,
+    "hasNext": true,
+    "hasPrev": false
+  },
+  "category": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "Tin tức",
+    "slug": "tin-tuc"
   }
-});
+}
 ```
 
-## Run tests
+## 🗄️ Database Schema
 
+### Collections Overview
+
+#### Users
+```typescript
+{
+  id: ObjectId,
+  email: string (unique),
+  name: string,
+  profile?: {
+    bio: string
+  },
+  createdAt: DateTime,
+  updatedAt: DateTime
+}
+```
+
+#### Categories
+```typescript
+{
+  id: ObjectId,
+  name: string (unique),
+  slug?: string (unique),
+  description?: string,
+  link?: string, // RSS feed URL
+  createdAt: DateTime,
+  updatedAt: DateTime
+}
+```
+
+#### Posts
+```typescript
+{
+  id: ObjectId,
+  title: string,
+  slug: string (unique),
+  link: string (unique),
+  author: {
+    name: string,
+    avatar: {
+      src: string
+    }
+  },
+  content: string,
+  description: string,
+  image?: string,
+  categories: ObjectId[], // References to categories
+  published: boolean (default: true),
+  source?: string,
+  tags: string[],
+  pubDate: string,
+  createdAt: DateTime,
+  updatedAt: DateTime
+}
+```
+
+## 🔧 Development Tools
+
+### Prisma Commands
 ```bash
-# unit tests
-$ npm run test
+# Generate Prisma client
+npx prisma generate
 
-# e2e tests
-$ npm run test:e2e
+# Push schema changes (development)
+npx prisma db push
 
-# test coverage
-$ npm run test:cov
+# Pull schema from database
+npx prisma db pull
+
+# Open Prisma Studio
+npx prisma studio
+
+# Reset database (⚠️ Deletes all data!)
+npx prisma migrate reset --force
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### Code Quality
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Format code
+npm run format
+
+# Run linter
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Testing
+```bash
+# Unit tests
+npm run test
 
-## Resources
+# E2E tests  
+npm run test:e2e
 
-Check out a few resources that may come in handy when working with NestJS:
+# Test coverage
+npm run test:cov
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Watch mode
+npm run test:watch
+```
 
-## Support
+## 📖 Usage Examples
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Creating and Using Categories
 
-## Stay in touch
+1. **Create a category:**
+```bash
+curl -X POST http://localhost:3000/category \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Thể thao",
+    "slug": "the-thao",
+    "link": "https://tuoitre.vn/rss/the-thao.rss",
+    "description": "Tin tức thể thao"
+  }'
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+2. **Crawl RSS feeds:**
+```bash
+curl http://localhost:3000/post/crawl
+```
 
-## License
+3. **Get posts from category:**
+```bash
+curl "http://localhost:3000/post/category/the-thao?page=1&limit=5"
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Batch RSS Processing
+The crawling system processes multiple RSS feeds concurrently:
+- Fetches all categories with RSS links
+- Processes feeds in parallel using Promise.all()
+- Handles duplicates using upsert operations
+- Provides detailed logging for monitoring
+
+## 🚀 Production Deployment
+
+### Environment Setup
+```env
+NODE_ENV=production
+DATABASE_URL="your-production-mongodb-url"
+JWT_SECRET="strong-production-secret"
+PORT=3000
+CORS_ORIGIN="https://yourdomain.com"
+```
+
+### Security Considerations
+- Enable CORS restrictions for production domains
+- Use HTTPS/TLS encryption
+- Implement rate limiting
+- Add input validation and sanitization
+- Set up monitoring and logging
+- Use environment-specific secrets
+
+### Performance Optimization
+- MongoDB indexing on frequently queried fields
+- Connection pooling for database
+- Caching for static data
+- Pagination for large datasets
+- Concurrent RSS processing limits
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+- Follow TypeScript best practices
+- Add tests for new features  
+- Update documentation
+- Use conventional commits
+- Ensure all tests pass
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+For questions and support:
+- Create an issue on GitHub
+- Check existing documentation
+- Review API examples above
+
+## 📞 Contact
+
+- **Author**: thientrile
+- **Repository**: nest-news-api-crawl-tuoitre

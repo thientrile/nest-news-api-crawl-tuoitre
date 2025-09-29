@@ -23,6 +23,7 @@ export interface Article {
   author: AuthorInfo | string;
   title: string;
   link: string;
+  slug?: string;
   categories?: string[];
   pubDate: string;
   description?: string;

@@ -72,6 +72,7 @@ export class RssCrawlerService {
           author,
           title: item.title,
           link: item.link,
+          slug: this.createSlug(item.title),
           pubDate: item.pubDate,
           categories: [categoryId],
           description: item.description?.replace(/<[^>]+>/g, '').trim(),

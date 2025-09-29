@@ -1,6 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
 import { Article, RssCrawlerService } from '../../libs/rss-crawler/src';
 import { CategoryService } from 'src/category/category.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -13,11 +11,7 @@ export class PostService {
     private readonly rssCrawlerService: RssCrawlerService,
     private readonly categoryService: CategoryService,
     private readonly prismaService: PrismaService
-  ) { }
-
-  create(createPostDto: CreatePostDto) {
-    return 'This action adds a new post';
-  }
+  ) {}
   async crawl() {
     try {
       const getAllCategories = await this.categoryService.findAll();
@@ -58,7 +52,7 @@ export class PostService {
             create: {
               title: post.title,
               link: post.link,
-              slug: this.generateSlugFromTitle(post.title),
+              slug: post.slug ?? this.rssCrawlerService.createSlug(post.title),
               pubDate: post.pubDate,
               description: post.description || '',
               content: post.content,
@@ -80,20 +74,82 @@ export class PostService {
       throw error;
     }
   }
-  private generateSlugFromTitle(title: string): string {
-    return title
-      .toLowerCase()
-      .normalize('NFD') // Normalize Vietnamese characters
-      .replace(/[\u0300-\u036f]/g, '') // Remove accents
-      .replace(/[^a-z0-9\s-]/g, '') // Keep only alphanumeric, spaces, and hyphens
-      .trim()
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
+
+  async findAll() {
+    try {
+      const posts = await this.prismaService.posts.findMany({
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+      return posts;
+    } catch (error) {
+      this.logger.error('Error fetching all posts:', error);
+      throw error;
+    }
   }
 
-  findAll() {
-    return `This action returns all post`;
+  async findByCategorySlug(
+    categorySlug: string,
+    page: number = 1,
+    limit: number = 10
+  ) {
+    try {
+      // First, find the category by slug to get its ID
+      const category = await this.categoryService.findBySlug(categorySlug);
+
+      if (!category) {
+        throw new Error(`Category with slug "${categorySlug}" not found`);
+      }
+
+      const skip = (page - 1) * limit;
+
+      // Find posts that contain this category ID in their categories array
+      const posts = await this.prismaService.posts.findMany({
+        where: {
+          categories: {
+            has: category.id // MongoDB array contains operation
+          },
+          published: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        skip,
+        take: limit
+      });
+
+      // Get total count for pagination
+      const totalPosts = await this.prismaService.posts.count({
+        where: {
+          categories: {
+            has: category.id
+          },
+          published: true
+        }
+      });
+
+      return {
+        posts,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalPosts / limit),
+          totalPosts,
+          hasNext: page < Math.ceil(totalPosts / limit),
+          hasPrev: page > 1
+        },
+        category: {
+          id: category.id,
+          name: category.name,
+          slug: category.slug
+        }
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error fetching posts for category slug "${categorySlug}":`,
+        error
+      );
+      throw error;
+    }
   }
-
-
 }
