@@ -64,9 +64,7 @@ cp .env.example .env
 Create a `.env` file in the root directory:
 ```env
 DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/newsx-db"
-JWT_SECRET="your-super-secret-jwt-key-here"
-JWT_EXPIRES_IN="7d"
-NODE_ENV="development"
+
 PORT=3000
 ```
 

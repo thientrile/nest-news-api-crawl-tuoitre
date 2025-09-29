@@ -152,4 +152,84 @@ export class PostService {
       throw error;
     }
   }
+
+  async searchByTitle(
+    searchQuery: string,
+    page: number = 1,
+    limit: number = 10
+  ) {
+    try {
+      if (!searchQuery || searchQuery.trim().length === 0) {
+        throw new Error('Search query cannot be empty');
+      }
+
+      const skip = (page - 1) * limit;
+
+      // Search for posts with title containing the search query (case insensitive)
+      const posts = await this.prismaService.posts.findMany({
+        where: {
+          AND: [
+            {
+              title: {
+                contains: searchQuery.trim(),
+                mode: 'insensitive'
+              }
+            },
+            {
+              published: true
+            }
+          ]
+        },
+        orderBy: {
+          createdAt: 'desc' // Sắp xếp mới nhất trước
+        },
+        skip,
+        take: limit
+      });
+
+      // Get total count for pagination
+      const totalPosts = await this.prismaService.posts.count({
+        where: {
+          AND: [
+            {
+              title: {
+                contains: searchQuery.trim(),
+                mode: 'insensitive'
+              }
+            },
+            {
+              published: true
+            }
+          ]
+        }
+      });
+
+      this.logger.log(
+        `Search completed: found ${totalPosts} posts for query "${searchQuery}"`
+      );
+
+      return {
+        posts,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalPosts / limit),
+          totalPosts,
+          hasNext: page < Math.ceil(totalPosts / limit),
+          hasPrev: page > 1
+        },
+        searchQuery: searchQuery.trim(),
+        searchMetadata: {
+          executedAt: new Date().toISOString(),
+          resultsFound: posts.length,
+          totalMatches: totalPosts
+        }
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error searching posts with query "${searchQuery}":`,
+        error
+      );
+      throw error;
+    }
+  }
 }

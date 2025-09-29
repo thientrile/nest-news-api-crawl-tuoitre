@@ -15,6 +15,25 @@ export class PostController {
     return this.postService.findAll();
   }
 
+  @Get('search')
+  async searchByTitle(
+    @Query('q') searchQuery?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string
+  ) {
+    if (!searchQuery) {
+      return {
+        error: 'Search query is required',
+        message: 'Please provide a search query using ?q=your-search-term'
+      };
+    }
+
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+
+    return this.postService.searchByTitle(searchQuery, pageNum, limitNum);
+  }
+
   @Get('category/:slug')
   async findByCategorySlug(
     @Param('slug') categorySlug: string,
