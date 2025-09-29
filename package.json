@@ -5,8 +5,13 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "build": "nest build",
+    "postbuild": "npx prisma generate",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -88,5 +93,11 @@
     "moduleNameMapper": {
       "^@app/rss-crawler(|/.*)$": "<rootDir>/libs/rss-crawler/src/$1"
     }
+  },
+  "overrides": {
+    "undici": "^5.28.4"
+  },
+  "resolutions": {
+    "undici": "^5.28.4"
   }
 }

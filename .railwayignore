@@ -1,0 +1,56 @@
+# Railway ignore file
+# Exclude files and directories from Railway deployment
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node modules (Railway will install from package.json)
+node_modules/
+
+# Build artifacts (Railway will build from source)
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Documentation
+docs/
+README_OLD.md
+
+# Git
+.git/
+.gitignore
+
+# Prisma generated files (will be regenerated)
+node_modules/.prisma/
+prisma/generated/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
