@@ -92,6 +92,38 @@ export class PostService {
     }
   }
 
+  async findBySlug(slug: string) {
+    try {
+      const post = await this.prismaService.posts.findUnique({
+        where: { slug },
+      });
+
+      if (!post || !post.published) {
+        throw new Error(`Post with slug "${slug}" not found or unpublished`);
+      }
+
+      // Lấy thông tin categories
+      const categories = await this.prismaService.categories.findMany({
+        where: {
+         id: { in: post.categories }, // match theo mảng ObjectId
+        },
+        select: {
+         id: true,
+         name: true,
+         slug: true,
+        },
+     });
+
+      return {
+        ...post,
+        categories, // thêm thông tin categories
+      };
+    } catch (error) {
+     this.logger.error(`Error fetching post by slug "${slug}":`, error);
+     throw error;
+   }
+  }
+
   async findByCategorySlug(
     categorySlug: string,
     page: number = 1,

@@ -50,4 +50,9 @@ export class PostController {
     const normalizedSlug = normalizeVietnamese(categorySlug);
     return this.postService.findByCategorySlug(normalizedSlug, pageNum, limitNum);
   }
+
+  @Get(':slug')
+  async findBySlug(@Param('slug') slug: string) {
+    return this.postService.findBySlug(slug);
+  }
 }
