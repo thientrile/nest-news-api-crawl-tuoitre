@@ -7,8 +7,18 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Get('crawl')
-  async crawl() {
-    return this.postService.crawl();
+  crawl() {
+    // Fire-and-forget: start crawling in background
+    this.postService.crawl().catch((error) => {
+      console.error('Background crawl failed:', error);
+    });
+
+    // Return immediate response
+    return {
+      message: 'Crawl process started in background',
+      status: 'initiated',
+      timestamp: new Date().toISOString()
+    };
   }
 
   @Get()

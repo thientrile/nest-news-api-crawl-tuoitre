@@ -7,74 +7,207 @@ import { normalizeVietnamese } from 'src/utils/text.helper';
 @Injectable()
 export class PostService {
   private readonly logger = new Logger(PostService.name);
+  private readonly BATCH_SIZE = 50; // Xử lý 50 posts mỗi batch
+  private readonly BATCH_DELAY = 100; // Delay 100ms giữa các batch
 
   constructor(
     private readonly rssCrawlerService: RssCrawlerService,
     private readonly categoryService: CategoryService,
     private readonly prismaService: PrismaService
   ) {}
+
+  private async sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async upsertPostsBatch(posts: Article[]): Promise<void> {
+    const operations = posts.map((post) => ({
+      where: { link: post.link },
+      update: {
+        title: post.title,
+        titleNormalized: normalizeVietnamese(post.title),
+        description: post.description || '',
+        content: post.content,
+        image: post.image,
+        pubDate: post.pubDate,
+        updatedAt: new Date()
+      },
+      create: {
+        title: post.title,
+        titleNormalized: normalizeVietnamese(post.title),
+        link: post.link,
+        slug: post.slug ?? this.rssCrawlerService.createSlug(post.title),
+        pubDate: post.pubDate,
+        description: post.description || '',
+        content: post.content,
+        image: post.image || null,
+        author:
+          typeof post.author === 'string'
+            ? { name: post.author, avatar: { src: '' } }
+            : post.author,
+        categories: post.categories || [],
+        published: true,
+        source: 'tuoitre.vn'
+      }
+    }));
+
+    // Sử dụng transaction để đảm bảo atomicity
+    await this.prismaService.$transaction(
+      operations.map((op) => this.prismaService.posts.upsert(op))
+    );
+  }
+
   async crawl() {
     try {
       const getAllCategories = await this.categoryService.findAll();
       const links = getAllCategories
-        .map((category) => {
-          return {
-            link: category.link,
-            id: category.id
-          };
-        })
+        .map((category) => ({
+          link: category.link,
+          id: category.id
+        }))
         .filter((item) => typeof item.link === 'string' && item.link !== null);
 
-      const results = await Promise.all(
-        links.map((item) =>
-          this.rssCrawlerService.crawlRSSAndContent(
-            item.link as string,
-            item.id
-          )
-        )
+      this.logger.log(`📡 Starting crawl for ${links.length} categories...`);
+
+      const results = await this.rssCrawlerService.crawlManyFeeds(
+        links.map((x) => ({ link: x.link as string, id: x.id }))
       );
-      this.logger.log(
-        `Crawled ${results.flat().length} articles from ${links.length} categories.`
-      );
-      const createPosts = results
+
+      const allPosts = results
         .flat()
-        .filter((post: Article) => post !== undefined && post !== null)
-        .map((post: Article) =>
-          this.prismaService.posts.upsert({
-            where: { link: post.link },
-            update: {
-              title: post.title,
-              titleNormalized: normalizeVietnamese(post.title),
-              description: post.description || '',
-              content: post.content,
-              image: post.image,
-              pubDate: post.pubDate,
-              updatedAt: new Date()
-            },
-            create: {
-              title: post.title,
-              titleNormalized: normalizeVietnamese(post.title),
-              link: post.link,
-              slug: post.slug ?? this.rssCrawlerService.createSlug(post.title),
-              pubDate: post.pubDate,
-              description: post.description || '',
-              content: post.content,
-              image: post.image || null,
-              author:
-                typeof post.author === 'string'
-                  ? { name: post.author, avatar: { src: '' } }
-                  : post.author,
-              categories: post.categories || [],
-              published: true,
-              source: 'tuoitre.vn'
-            }
-          })
-        );
-      await Promise.all(createPosts);
-      return results.flat();
+        .filter((post: Article) => post !== undefined && post !== null);
+
+      this.logger.log(
+        `🎯 Crawled ${allPosts.length} articles total. Processing in batches...`
+      );
+
+      let processedCount = 0;
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Process posts in batches to avoid write conflicts
+      for (let i = 0; i < allPosts.length; i += this.BATCH_SIZE) {
+        const batch = allPosts.slice(i, i + this.BATCH_SIZE);
+        const batchNumber = Math.floor(i / this.BATCH_SIZE) + 1;
+        const totalBatches = Math.ceil(allPosts.length / this.BATCH_SIZE);
+
+        try {
+          this.logger.log(
+            `⚡ Processing batch ${batchNumber}/${totalBatches} (${batch.length} posts)`
+          );
+
+          await this.upsertPostsBatch(batch);
+
+          successCount += batch.length;
+          this.logger.log(
+            `✅ Batch ${batchNumber}/${totalBatches} completed successfully`
+          );
+
+          // Delay between batches to prevent overwhelming the database
+          if (i + this.BATCH_SIZE < allPosts.length) {
+            await this.sleep(this.BATCH_DELAY);
+          }
+        } catch (error) {
+          errorCount += batch.length;
+          this.logger.error(
+            `❌ Batch ${batchNumber} failed:`,
+            error instanceof Error ? error.message : String(error)
+          );
+
+          // Try individual upserts for failed batch
+          this.logger.log(`🔄 Retrying batch ${batchNumber} individually...`);
+          await this.retryBatchIndividually(batch);
+        }
+
+        processedCount += batch.length;
+      }
+
+      this.logger.log(
+        `🎉 Crawl completed! Processed: ${processedCount}, Success: ${successCount}, Errors: ${errorCount}`
+      );
+      return allPosts;
     } catch (error) {
-      this.logger.error('Error crawling RSS feed:', error);
+      this.logger.error('❌ Error crawling RSS feed:', error);
       throw error;
+    }
+  }
+
+  private async retryBatchIndividually(posts: Article[]): Promise<void> {
+    let individualSuccessCount = 0;
+    let individualErrorCount = 0;
+
+    for (const post of posts) {
+      try {
+        await this.prismaService.posts.upsert({
+          where: { link: post.link },
+          update: {
+            title: post.title,
+            titleNormalized: normalizeVietnamese(post.title),
+            description: post.description || '',
+            content: post.content,
+            image: post.image,
+            pubDate: post.pubDate,
+            updatedAt: new Date()
+          },
+          create: {
+            title: post.title,
+            titleNormalized: normalizeVietnamese(post.title),
+            link: post.link,
+            slug: post.slug ?? this.rssCrawlerService.createSlug(post.title),
+            pubDate: post.pubDate,
+            description: post.description || '',
+            content: post.content,
+            image: post.image || null,
+            author:
+              typeof post.author === 'string'
+                ? { name: post.author, avatar: { src: '' } }
+                : post.author,
+            categories: post.categories || [],
+            published: true,
+            source: 'tuoitre.vn'
+          }
+        });
+        individualSuccessCount++;
+
+        // Small delay between individual retries
+        await this.sleep(10);
+      } catch (error) {
+        individualErrorCount++;
+        this.logger.error(
+          `Failed to upsert individual post: ${post.title}`,
+          error instanceof Error ? error.message : String(error)
+        );
+      }
+    }
+
+    this.logger.log(
+      `🔄 Individual retry completed: ${individualSuccessCount} success, ${individualErrorCount} failed`
+    );
+  }
+
+  // Thêm method để lấy existing slugs cho smart crawling
+  async getExistingSlugs(): Promise<string[]> {
+    try {
+      const posts = await this.prismaService.posts.findMany({
+        select: { slug: true }
+      });
+      return posts.map((post) => post.slug);
+    } catch (error) {
+      this.logger.error('Error fetching existing slugs:', error);
+      return [];
+    }
+  }
+
+  // Thêm method để lấy existing links cho duplicate checking
+  async getExistingLinks(): Promise<string[]> {
+    try {
+      const posts = await this.prismaService.posts.findMany({
+        select: { link: true }
+      });
+      return posts.map((post) => post.link);
+    } catch (error) {
+      this.logger.error('Error fetching existing links:', error);
+      return [];
     }
   }
 
@@ -105,7 +238,7 @@ export class PostService {
       // Lấy thông tin categories
       const categories = await this.prismaService.categories.findMany({
         where: {
-          id: { in: post.categories } // match theo mảng ObjectId
+          id: { in: post.categories }
         },
         select: {
           id: true,
@@ -116,7 +249,7 @@ export class PostService {
 
       return {
         ...post,
-        categories // thêm thông tin categories
+        categories
       };
     } catch (error) {
       this.logger.error(`Error fetching post by slug "${slug}":`, error);
@@ -130,7 +263,6 @@ export class PostService {
     limit: number = 10
   ) {
     try {
-      // First, find the category by slug to get its ID
       const category = await this.categoryService.findBySlug(categorySlug);
 
       if (!category) {
@@ -139,22 +271,20 @@ export class PostService {
 
       const skip = (page - 1) * limit;
 
-      // Find posts that contain this category ID in their categories array
       const posts = await this.prismaService.posts.findMany({
         where: {
           categories: {
-            has: category.id // MongoDB array contains operation
+            has: category.id
           },
           published: true
         },
         orderBy: {
-          createdAt: 'asc'
+          createdAt: 'desc' // Changed to desc for newest first
         },
         skip,
         take: limit
       });
 
-      // Get total count for pagination
       const totalPosts = await this.prismaService.posts.count({
         where: {
           categories: {
@@ -163,6 +293,7 @@ export class PostService {
           published: true
         }
       });
+
       const totalPages = Math.ceil(totalPosts / limit);
       return {
         posts,
@@ -199,10 +330,8 @@ export class PostService {
       }
 
       const skip = (page - 1) * limit;
-
       const normalized = normalizeVietnamese(searchQuery);
 
-      // Search for posts with title containing the search query (case insensitive)
       const posts = await this.prismaService.posts.findMany({
         where: {
           AND: [
@@ -218,13 +347,12 @@ export class PostService {
           ]
         },
         orderBy: {
-          createdAt: 'desc' // Sắp xếp mới nhất trước
+          createdAt: 'desc'
         },
         skip,
         take: limit
       });
 
-      // Get total count for pagination
       const totalPosts = await this.prismaService.posts.count({
         where: {
           AND: [
