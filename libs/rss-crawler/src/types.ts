@@ -25,6 +25,7 @@ export interface Article {
   link: string;
   slug?: string;
   categories?: string[];
+  titleNormalized?: string;
   pubDate: string;
   description?: string;
   image?: string | null;

@@ -95,7 +95,7 @@ export class PostService {
   async findBySlug(slug: string) {
     try {
       const post = await this.prismaService.posts.findUnique({
-        where: { slug },
+        where: { slug }
       });
 
       if (!post || !post.published) {
@@ -105,23 +105,23 @@ export class PostService {
       // Lấy thông tin categories
       const categories = await this.prismaService.categories.findMany({
         where: {
-         id: { in: post.categories }, // match theo mảng ObjectId
+          id: { in: post.categories } // match theo mảng ObjectId
         },
         select: {
-         id: true,
-         name: true,
-         slug: true,
-        },
-     });
+          id: true,
+          name: true,
+          slug: true
+        }
+      });
 
       return {
         ...post,
-        categories, // thêm thông tin categories
+        categories // thêm thông tin categories
       };
     } catch (error) {
-     this.logger.error(`Error fetching post by slug "${slug}":`, error);
-     throw error;
-   }
+      this.logger.error(`Error fetching post by slug "${slug}":`, error);
+      throw error;
+    }
   }
 
   async findByCategorySlug(

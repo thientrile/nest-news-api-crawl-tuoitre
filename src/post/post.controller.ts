@@ -48,7 +48,11 @@ export class PostController {
     const limitNum = limit ? parseInt(limit, 10) : 100;
     // Normalize slug (phòng khi slug có dấu/space)
     const normalizedSlug = normalizeVietnamese(categorySlug);
-    return this.postService.findByCategorySlug(normalizedSlug, pageNum, limitNum);
+    return this.postService.findByCategorySlug(
+      normalizedSlug,
+      pageNum,
+      limitNum
+    );
   }
 
   @Get(':slug')
