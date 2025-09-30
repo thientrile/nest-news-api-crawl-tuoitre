@@ -27,25 +27,51 @@ export class PostController {
   }
 
   @Get('search')
-  async searchByTitle(
+  searchPosts(
     @Query('q') searchQuery?: string,
+    @Query('category') categorySlug?: string,
+    @Query('sort') sortBy?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string
   ) {
-    if (!searchQuery) {
+    // Nếu không có search query và không có category thì báo lỗi
+    if (!searchQuery && !categorySlug) {
       return {
-        error: 'Search query is required',
-        message: 'Please provide a search query using ?q=your-search-term'
+        error: 'Search query or category is required',
+        message:
+          'Please provide a search query (?q=) or category (?category=) or both'
       };
     }
 
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 10;
 
-    // Chuẩn hóa query
-    const normalizedQuery = normalizeVietnamese(searchQuery);
+    // Validate sort parameter: newest (mới nhất) hoặc oldest (cũ nhất)
+    const validSorts = ['newest', 'oldest'];
+    const sortOrder = validSorts.includes(sortBy || '')
+      ? (sortBy as 'newest' | 'oldest')
+      : 'newest';
 
-    return this.postService.searchByTitle(normalizedQuery, pageNum, limitNum);
+    // Chuẩn hóa search query nếu có
+    const normalizedQuery = searchQuery
+      ? normalizeVietnamese(searchQuery)
+      : undefined;
+
+    // Xử lý category: nếu category = '' thì tìm tất cả, không thì normalize
+    let normalizedCategory: string | undefined;
+    if (categorySlug === '') {
+      normalizedCategory = undefined; // Tìm tất cả category
+    } else if (categorySlug) {
+      normalizedCategory = normalizeVietnamese(categorySlug);
+    }
+
+    return this.postService.searchPosts({
+      searchQuery: normalizedQuery,
+      categorySlug: normalizedCategory,
+      sortBy: sortOrder,
+      page: pageNum,
+      limit: limitNum
+    });
   }
 
   @Get('category/:slug')

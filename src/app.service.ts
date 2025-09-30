@@ -10,7 +10,8 @@ import { PostService } from './post/post.service';
 export class AppService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(AppService.name);
   private crawlInterval: NodeJS.Timeout;
-
+  private readonly auto_timer =
+    parseInt(process.env.AUTO_CRAWL_INTERVAL_MINUTES ?? '60', 60) || 60;
   constructor(private readonly postService: PostService) {}
 
   onModuleInit() {
@@ -24,10 +25,10 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
       () => {
         void this.performCrawling();
       },
-      5 * 60 * 1000
+      this.auto_timer * 60 * 1000
     ); // 5 minutes
 
-    this.logger.log('Auto-crawling started (every 5 minutes)');
+    this.logger.log(`Auto-crawling started (every ${this.auto_timer} minutes)`);
   }
 
   private async performCrawling() {

@@ -397,4 +397,106 @@ export class PostService {
       throw error;
     }
   }
+
+  // Advanced search method with category and sorting
+  async searchPosts(params: {
+    searchQuery?: string;
+    categorySlug?: string;
+    sortBy: 'newest' | 'oldest';
+    page: number;
+    limit: number;
+  }) {
+    try {
+      const { searchQuery, categorySlug, sortBy, page, limit } = params;
+
+      const skip = (page - 1) * limit;
+      const sortOrder = sortBy === 'oldest' ? 'asc' : 'desc';
+
+      // Build where conditions
+      const whereConditions: any[] = [{ published: true }];
+
+      // Add search query condition if provided
+      if (searchQuery) {
+        const normalized = normalizeVietnamese(searchQuery);
+        whereConditions.push({
+          titleNormalized: {
+            contains: normalized,
+            mode: 'insensitive'
+          }
+        });
+      }
+
+      // Add category condition if provided (nếu categorySlug undefined thì tìm tất cả)
+      let category: { id: string; name: string; slug: string } | null = null;
+      if (categorySlug && categorySlug.trim() !== 'all') {
+        try {
+          const foundCategory =
+            await this.categoryService.findBySlug(categorySlug);
+          if (!foundCategory || !foundCategory.id || !foundCategory.slug) {
+            throw new Error(
+              `Category with slug "${categorySlug}" not found or has invalid slug`
+            );
+          }
+          category = {
+            id: foundCategory.id,
+            name: foundCategory.name,
+            slug: foundCategory.slug
+          };
+          whereConditions.push({
+            categories: {
+              has: category.id
+            }
+          });
+        } catch {
+          throw new Error(`Category with slug "${categorySlug}" not found`);
+        }
+      }
+
+      const whereClause = { AND: whereConditions };
+
+      const posts = await this.prismaService.posts.findMany({
+        where: whereClause,
+        orderBy: {
+          createdAt: sortOrder
+        },
+        skip,
+        take: limit
+      });
+
+      const totalPosts = await this.prismaService.posts.count({
+        where: whereClause
+      });
+
+      return {
+        posts,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalPosts / limit),
+          totalPosts,
+          hasNext: page < Math.ceil(totalPosts / limit),
+          hasPrev: page > 1
+        },
+        searchMetadata: {
+          executedAt: new Date().toISOString(),
+          resultsFound: posts.length,
+          totalMatches: totalPosts,
+          sortBy,
+          sortOrder,
+          hasSearchQuery: !!searchQuery,
+          hasCategory: !!categorySlug
+        },
+        ...(searchQuery && { searchQuery: searchQuery.trim() }),
+        ...(category && {
+          category: {
+            id: category.id,
+            name: category.name,
+            slug: category.slug
+          }
+        })
+      };
+    } catch (error) {
+      this.logger.error(`Error in advanced search:`, error);
+      throw error;
+    }
+  }
 }
