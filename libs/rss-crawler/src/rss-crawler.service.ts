@@ -16,7 +16,7 @@ export class RssCrawlerService {
       // Loại bỏ các phần tử không mong muốn, ví dụ như div con chứa quảng cáo
       contentDiv.find('div').remove();
       contentDiv.find('script').remove();
-      contentDiv.find('figure').remove();
+      // contentDiv.find('figure').remove();
 
       // Lấy toàn bộ nội dung HTML bên trong div chính
       const htmlContent = contentDiv.html();

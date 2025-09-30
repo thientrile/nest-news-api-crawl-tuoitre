@@ -148,7 +148,7 @@ export class PostService {
           published: true
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: 'asc'
         },
         skip,
         take: limit
@@ -163,14 +163,14 @@ export class PostService {
           published: true
         }
       });
-
+      const totalPages = Math.ceil(totalPosts / limit);
       return {
         posts,
         pagination: {
           currentPage: page,
-          totalPages: Math.ceil(totalPosts / limit),
+          totalPages,
           totalPosts,
-          hasNext: page < Math.ceil(totalPosts / limit),
+          hasNext: page < totalPages,
           hasPrev: page > 1
         },
         category: {
