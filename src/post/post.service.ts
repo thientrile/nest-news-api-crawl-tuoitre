@@ -257,6 +257,66 @@ export class PostService {
     }
   }
 
+  async findByAuthorSlug(
+    authorSlug: string,
+    page: number = 1,
+    limit: number = 10
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+
+      // Get posts by author slug
+      const posts = await this.prismaService.posts.findMany({
+        where: {
+          author: {
+            is: {
+              name: authorSlug
+            }
+          },
+          published: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        skip,
+        take: limit,
+        include: {
+          author: true
+        }
+      });
+
+      // Count total matching posts
+      const totalPosts = await this.prismaService.posts.count({
+        where: {
+          author: {
+            is: {
+              name: authorSlug
+            }
+          },
+          published: true
+        }
+      });
+      const totalPages = Math.ceil(totalPosts / limit);
+      return {
+        posts,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalPosts,
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        },
+        author: posts[0]?.author
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error fetching posts for author "${authorSlug}":`,
+        error
+      );
+      throw error;
+    }
+  }
+
   async findByCategorySlug(
     categorySlug: string,
     page: number = 1,

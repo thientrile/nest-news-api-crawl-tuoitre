@@ -95,4 +95,15 @@ export class PostController {
   async findBySlug(@Param('slug') slug: string) {
     return this.postService.findBySlug(slug);
   }
+
+  @Get('author/:slug')
+  async findByAuthorSlug(
+    @Param('slug') authorSlug: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 100;
+    return this.postService.findByAuthorSlug(authorSlug, pageNum, limitNum);
+  }
 }

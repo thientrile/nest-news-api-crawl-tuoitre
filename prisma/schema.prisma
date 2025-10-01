@@ -18,7 +18,7 @@ type AuthorAvatar {
 
 type PostAuthor {
   name   String
-  avatar AuthorAvatar
+  avatar AuthorAvatar?
 }
 
 
