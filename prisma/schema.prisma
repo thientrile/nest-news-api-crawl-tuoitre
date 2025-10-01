@@ -71,3 +71,15 @@ model users {
 
 }
 
+model comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  v         Int?     @map("__v")
+  username  String   
+  content   String
+  postId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
